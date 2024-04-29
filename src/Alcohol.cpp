@@ -3,7 +3,7 @@ MQUnifiedsensor MQ3(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin, Type);
 void Alcohol::mq3Init()
 {
   // Set math model to calculate the PPM concentration and the value of constants
-  MQ3.setRegressionMethod(0); //_PPM =  a*ratio^b
+  MQ3.setRegressionMethod(1); //_PPM =  a*ratio^b
   // MQ3.setA(4.8387); MQ3.setB(-2.68); // Configure the equation to to calculate Benzene concentration
   MQ3.setA(0.3934);
   MQ3.setB(-1.504); // Configure the equation to calculate Alcohol concentration value

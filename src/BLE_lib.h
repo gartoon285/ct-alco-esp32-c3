@@ -20,7 +20,7 @@
 class MyBLEService {
   public:
     void begin(String s);
-    void setSenseValue(int value);
+    void setSenseValue(std::string value);
     void setBattLevel(u8_t level);
     void setBattState(bool State);
     bool BleConnected();

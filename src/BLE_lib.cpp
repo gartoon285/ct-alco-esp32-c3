@@ -17,6 +17,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
 
 void MyBLEService::begin(String s) {
   BLEDevice::init(s.c_str());
+  BLEDevice::setPower(ESP_PWR_LVL_N12);
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
   sensorService = pServer->createService(Sensor_UUID);
@@ -33,6 +34,7 @@ void MyBLEService::begin(String s) {
                         BLEUUID((uint16_t)0x2A1A),
                         BLECharacteristic::PROPERTY_NOTIFY
                     );
+  
   SensorCharacteristic->addDescriptor(new BLE2902());
   battLevelCharacteristic->addDescriptor(new BLE2902());
   battStateCharacteristic->addDescriptor(new BLE2902());
@@ -42,10 +44,8 @@ void MyBLEService::begin(String s) {
   pAdvertising->start();
 }
 
-void MyBLEService::setSenseValue(int value){
-    String message = String(value);
-    std::string stdMessage = std::string(message.c_str());
-    SensorCharacteristic->setValue(stdMessage);
+void MyBLEService::setSenseValue(std::string value){
+    SensorCharacteristic->setValue(value);
     SensorCharacteristic->notify();
 }
 void MyBLEService::setBattLevel(u8_t level){
