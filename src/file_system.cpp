@@ -1,123 +1,85 @@
 #include <file_system.h>
-void FileSystem::init(String filename)
+  EEPROMClass  Lastindex("eeprom1");
+  EEPROMClass  indexCheck1("eeprom2");
+  EEPROMClass  indexCheck2("eeprom3");
+void FileSystem::init()
 {
-    if (!SPIFFS.begin(true))
-    {
-        Serial.println("An error occurred while mounting SPIFFS");
+    if(!SPIFFS.begin(true)){
+        Serial.println("SPIFFS Mount Failed");
         return;
     }
-    if (SPIFFS.exists(filename) == false)
-    { // เช็คถ้าไม่มีไฟล์ให้สร้างไฟล์ใหม่
-        file = SPIFFS.open(filename, FILE_WRITE);
-        if (!file)
-        {
-            Serial.println("There was an error opening the file for writing");
-            return;
-        }
-        file.close();
+    if (!EEPROM.begin(64))
+  {
+    Serial.println("failed to initialise EEPROM"); delay(1000000);
+  }
+    byte chek1 = EEPROM.readByte(10);
+    byte chek2 = EEPROM.readByte(12);
+    if(chek1 != 55 && chek2 != 38){
+        EEPROM.writeByte(10,55);
+        EEPROM.writeByte(12,38);
+        EEPROM.writeByte(0,0);
+        EEPROM.commit();
     }
     esp_read_mac(baseMac, ESP_MAC_BT);
+    hwid = String(baseMac[0], HEX) + " " + String(baseMac[1], HEX) + " " + String(baseMac[2], HEX) + " " + String(baseMac[3], HEX) + " " + String(baseMac[4], HEX) + " " + String(baseMac[5], HEX);
 }
 
-void FileSystem::Print(String filename, String time, float alco, float pressure, int8_t ledcode, float battV, float battSoc, bool battCharge)
+void FileSystem::Print(String time, float alco, float pressure, int8_t ledcode)
 {
-    String message = time + "," + String(alco) + "," + String(pressure) + "," + String(ledcode) + "," + String(battV) + "," + String(battSoc) + "," + String(battCharge);
-    file = SPIFFS.open(filename, FILE_APPEND);
-    if (!file)
-    {
-        Serial.println("There was an error opening the file for writing");
-        return;
-    }
-    file.println(message);
-    file.close();
-
-    file = SPIFFS.open(filename, FILE_READ);
+    String s;
+    byte index = EEPROM.readInt(0) + 1;
+    doc["hwid"] = hwid;
+    doc["time"] = time;
+    doc["alco"] = alco;
+    doc["pressure"] = pressure;
+    doc["ledcode"] = ledcode;
+    serializeJson(doc, s);
+    String filename = "/"+String(index)+".txt";
+    file = SPIFFS.open(filename, FILE_WRITE); // เปิดไฟล์ในโหมด Write
+  if (!file) {
+    Serial.println("There was an error opening the file for appending");
+    return;
+  }
+  // แทรกข้อความใหม่ลงไปในไฟล์
+  file.println(s);
+  file.close();
+  if(index>=100){
+    index =0;
+  }
+  Serial.println(index);
+  EEPROM.writeByte(0,index);
+  EEPROM.commit();
+}
+std::array<String, 100> FileSystem::Read()
+{
+    byte index = EEPROM.readInt(0);
     int count = 0;
-    String s[101];
-    while (file.available())
-    {
-        s[count] = file.readStringUntil('\n');
-        count++;
-    }
-    file.close();
-
-    if (count > 100)
-    {
-        file = SPIFFS.open(filename, FILE_WRITE);
-        if (!file)
-        {
-            Serial.println("Failed to open file for writing");
-            return;
-        }
-        for (int i = 1; i < 101; i++)
-        {
-            file.println(s[i]);
-        }
-        file.close();
-    }
-}
-std::array<String, 100> FileSystem::Read(String filename)
-{
-    file = SPIFFS.open(filename, FILE_READ);
     std::array<String, 100> messages;
-    if (!file)
-    {
-        Serial.println("There was an error opening the file for reading");
-        return messages;
-    }
-
-    // อ่านและแสดงข้อมูลจากไฟล์
-    int count = 0;
-    Serial.println("Contents of data.txt:");
-    while (file.available() && count < 100)
-    {
-        messages[count] = file.readStringUntil('\n');
-        count++;
-    }
-    file.close();
+        for (int k = index ; k <= 100; k++)
+        {
+            String s = "/"+String(k)+".txt";
+            messages[count]=readFile(s);
+            count++;
+        }
+        for (int j = 1; j <= index; j++)
+        {
+            String s = "/"+String(j)+".txt";
+            messages[count]=readFile(s);
+            count++;
+        }
     return messages;
 }
-std::array<String, 100> FileSystem::readJson(String filename)
-{
-    std::array<String, 100> messages;
-    int count = 0;
-    int id = 1;
-    // String time,alco,pressure,ledcode,battV,battSoc,battCharge;
-    file = SPIFFS.open(filename, FILE_READ);
-    String s[101];
-    while (file.available())
-    {
-        file.readStringUntil('\n');
-        count += 1;
-    }
-    file.close();
-    file = SPIFFS.open(filename, FILE_READ);
-    if (!file)
-    {
-        Serial.println("There was an error opening the file for reading");
-        return messages;
-    }
-    while (file.available() && count > 0)
-    {
-        String data = file.readStringUntil('\n');
-        int index = 0;
-        String dataArray[7]; // สร้างอาร์เรย์เพื่อเก็บข้อมูลที่แยกแล้ว time,alco,pressure,ledcode,battV,battSoc,battCharge
-        while (data.length() > 0)
-        {
-            int commaIndex = data.indexOf(','); // หาตำแหน่งของคอมมา (,)
-            if (commaIndex == -1)
-            {                              // ถ้าไม่พบคอมมา (,) ในสตริงอีกแล้ว
-                dataArray[index++] = data; // เก็บข้อมูลที่เหลือลงในอาร์เรย์
-                break;                     // ออกจากลูป
-            }
-            dataArray[index++] = data.substring(0, commaIndex); // แยกข้อมูลและเก็บในอาร์เรย์
-            data = data.substring(commaIndex + 1);              // ตัดข้อมูลที่แยกแล้วออกจากสตริง
-        }
-        String hwid = String(baseMac[0])+" "+String(baseMac[1])+" "+String(baseMac[2])+" "+String(baseMac[3])+" "+String(baseMac[4])+" "+String(baseMac[5]);
-        messages[id - 1] = "{\"ID\":\"" + String(id) + "\",\"hwid\":\"" + hwid +"\",\"time\":\"" + dataArray[0] + "\",\"alco\":" + dataArray[1] + ",\"pressure\":" + dataArray[2] + ",\"ledcode\":\"" + dataArray[3] + "\",\"batt\":[" + dataArray[4] + "," + dataArray[5] + "," + dataArray[6] + "]}";
-        count -= 1;
-        id++;
-    }
-    file.close();
-    return messages;
+String FileSystem::readFile(String name){
+ file = SPIFFS.open(name, FILE_READ);
+String s;
+  if (!file) {
+    Serial.println("There was an error opening the file for reading");
+    return s;
+  }
+
+  while (file.available()) {
+    s=file.readString();
+  }
+  file.close();
+ return s;
 }

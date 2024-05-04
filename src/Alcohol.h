@@ -9,7 +9,7 @@
 #define Pin (3)          // IO25 for your ESP32 WeMos Board, pinout here: https://i.pinimg.com/originals/66/9a/61/669a618d9435c702f4b67e12c40a11b8.jpg
 /***********************Software Related Macros************************************/
 #define Type ("MQ-3")              // MQ3 or other MQ Sensor, if change this verify your a and b values.
-#define Voltage_Resolution (3.205) // 3V3 <- IMPORTANT. Source: https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
+#define Voltage_Resolution (3.3) // 3V3 <- IMPORTANT. Source: https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
 #define ADC_Bit_Resolution (12)    // ESP-32 bit resolution. Source: https://randomnerdtutorials.com/esp32-adc-analog-read-arduino-ide/
 #define RatioMQ3CleanAir (60)      // Ratio of your sensor, for this example an MQ-3
                                    /*****************************Globals***********************************************/
