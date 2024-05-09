@@ -18,7 +18,7 @@ public:
   bool getCharge_en();
   bool getChargeState();
   void ip5306Init();
-  int8_t ip5306GetbattLevel();
+  int8_t getBatteryLevel();
 
 private:
   double voltage = 0; // Variable to keep track of LiPo voltage

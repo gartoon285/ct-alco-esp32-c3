@@ -59,7 +59,7 @@ void Battery::ip5306Init(){
     Wire.write(0b00000000);
     Wire.endTransmission();
 }
-int8_t getBatteryLevel()
+int8_t Battery:: getBatteryLevel()
 {
   Wire.beginTransmission(_i2c_5306Address);
   Wire.write(0x78);

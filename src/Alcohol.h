@@ -3,6 +3,7 @@
 #include <MQUnifiedsensor.h>
 #include <Wire.h>
 #define ADC_BATT 2
+#include "SGP30.h"
 
 /************************Hardware Related Macros************************************/
 #define Board ("ESP-32") // Wemos ESP-32 or other board, whatever have ESP32 core.
@@ -18,8 +19,12 @@ class Alcohol
 {
 public:
   void print_battery();
+  void sgp30Init();
   void mq3Init();
   void mq3Cal();
+  bool sgp30Update();
+  float sgp30getEthanol();
+  float sgp30getCo2();
   double readMQ3(bool debug);
 
 private:

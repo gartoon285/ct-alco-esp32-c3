@@ -24,7 +24,7 @@ void FileSystem::init()
     hwid = String(baseMac[0], HEX) + " " + String(baseMac[1], HEX) + " " + String(baseMac[2], HEX) + " " + String(baseMac[3], HEX) + " " + String(baseMac[4], HEX) + " " + String(baseMac[5], HEX);
 }
 
-void FileSystem::Print(String time, float alco, float pressure, int8_t ledcode)
+void FileSystem::Print(String time, float alco, float pressure, String ledcode)
 {
     String s;
     byte index = EEPROM.readInt(0) + 1;

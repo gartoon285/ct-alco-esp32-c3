@@ -1,5 +1,20 @@
 #include <Alcohol.h>
 MQUnifiedsensor MQ3(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin, Type);
+SGP30 SGP;
+void Alcohol::sgp30Init(){
+  SGP.begin();
+   Serial.println(SGP.measureTest());
+   SGP.GenericReset();
+}
+bool Alcohol::sgp30Update(){
+  return SGP.measure(true);
+}
+float Alcohol::sgp30getEthanol(){
+  return SGP.getEthanol();
+}
+float Alcohol::sgp30getCo2(){
+  return SGP.getCO2();
+}
 void Alcohol::mq3Init()
 {
   // Set math model to calculate the PPM concentration and the value of constants
