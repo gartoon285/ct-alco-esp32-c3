@@ -12,21 +12,25 @@ void Alcodisplay::init()
             ; // Don't proceed, loop forever
     }
     pixels.begin();
-    Dis.display();
     Dis.clearDisplay();
+    Dis.drawBitmap(0,0,FreeWill_Logo,128,64,1);
     Dis.display();
-    Dis.clearDisplay();
+    delay(2000);
 }
 
-void Alcodisplay::drawstyles(String text)
+void Alcodisplay::drawstyles(String co2,String Alcohol)
 {
     Dis.clearDisplay();
     Dis.setTextSize(1);              // Normal 1:1 pixel scale
     Dis.setTextColor(SSD1306_WHITE); // Draw white text
     Dis.setCursor(0, 0);             // Start at top-left corner
-    Dis.println("Alcohol now (PPM)");
+    Dis.print("Co2 : ");
     Dis.setTextSize(1); // Normal 1:1 pixel scale
-    Dis.println(text);
+    Dis.println(co2);
+    Dis.setTextSize(1); // Normal 1:1 pixel scale
+    Dis.print("Ethanol : ");
+    Dis.setTextSize(1); // Normal 1:1 pixel scale
+    Dis.println(Alcohol);
     Dis.display();
 }
 
@@ -35,9 +39,10 @@ String Alcodisplay::randLED()
     pixels.clear();
     byte rand1 = random(0, 3);
     byte rand2 = random(4, 7);
-    while(rand1 == rand1before && rand2 == rand2before){
+    while (rand1 == rand1before && rand2 == rand2before)
+    {
         rand1 = random(0, 3);
-    } 
+    }
     pixels.setPixelColor(rand1, pixels.Color(50, 0, 0));
     pixels.setPixelColor(rand2, pixels.Color(50, 0, 0));
     pixels.show();
@@ -51,7 +56,32 @@ String Alcodisplay::randLED()
     return rand3;
 }
 
-void Alcodisplay::clear()
+void Alcodisplay::OLEDclear()
 {
-    pixels.clear();
+    Dis.clearDisplay();
+    Dis.display();
+}
+
+void Alcodisplay::DisplayWormUp()
+{
+    String text;
+    for (int i = Time_WormUp; i > 0; i--)
+    {
+        Dis.clearDisplay();
+        Dis.setTextSize(2);              // Normal 1:1 pixel scale
+        Dis.setTextColor(SSD1306_WHITE); // Draw white text
+        Dis.setCursor(0, 0);             // Start at top-left corner
+        Dis.println(F("    Worm Up"));
+        if (i < 10)
+        {
+            text = "0" + String(i);
+        }
+        else{
+            text = String(i);
+        }
+        Dis.setTextSize(1); // Normal 1:1 pixel scale
+        Dis.println(text);
+        Dis.display();
+        delay(1000);
+    }
 }

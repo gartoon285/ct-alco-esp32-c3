@@ -1,27 +1,37 @@
 #include <Alcohol.h>
-MQUnifiedsensor MQ3(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin, Type);
-SGP30 SGP;
+MQUnifiedsensor MQ303(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin, Type);
 void Alcohol::sgp30Init(){
-  SGP.begin();
-   Serial.println(SGP.measureTest());
-   SGP.GenericReset();
+  if (! sgp.begin()){
+    Serial.println("Sensor not found :(");
+    while (1);
+      uint16_t TVOC_base, eCO2_base;
+    if (! sgp.getIAQBaseline(&eCO2_base, &TVOC_base)) {
+      Serial.println("Failed to get baseline readings");
+      return;
+    }
+  sgp.setIAQBaseline(eCO2_base, TVOC_base);
+  }
 }
 bool Alcohol::sgp30Update(){
-  return SGP.measure(true);
+  return sgp.IAQmeasure();
 }
 float Alcohol::sgp30getEthanol(){
-  return SGP.getEthanol();
+        sgp.IAQmeasureRaw();
+        int16_t e=sgp.rawEthanol;
+        float cref = 0.4;
+     float Ethanol= cref * exp((_srefEth - e) * 1.953125e-3);
+  return Ethanol;
 }
 float Alcohol::sgp30getCo2(){
-  return SGP.getCO2();
+  return sgp.eCO2;
 }
-void Alcohol::mq3Init()
+void Alcohol::mq303Init()
 {
   // Set math model to calculate the PPM concentration and the value of constants
-  MQ3.setRegressionMethod(1); //_PPM =  a*ratio^b
+  MQ303.setRegressionMethod(1); //_PPM =  a*ratio^b
   // MQ3.setA(4.8387); MQ3.setB(-2.68); // Configure the equation to to calculate Benzene concentration
-  MQ3.setA(0.3934);
-  MQ3.setB(-1.504); // Configure the equation to calculate Alcohol concentration value
+  MQ303.setA(0.3934);
+  MQ303.setB(-1.504); // Configure the equation to calculate Alcohol concentration value
   /*
     Exponential regression:
   Gas    | a      | b
@@ -36,15 +46,15 @@ void Alcohol::mq3Init()
   /*****************************  MQ Init ********************************************/
   // Remarks: Configure the pin of arduino as input.
   /************************************************************************************/
-  MQ3.init();
-  MQ3.serialDebug(true);
+  MQ303.init();
+  MQ303.serialDebug(true);
   /*
     //If the RL value is different from 10K please assign your RL value with the following method:
     MQ3.setRL(10);
   */
-  MQ3.setRL(10);
+  MQ303.setRL(10);
 }
-void Alcohol ::mq3Cal()
+void Alcohol ::mq303Cal()
 {
   /*****************************  MQ CAlibration ********************************************/
   // Explanation:
@@ -53,18 +63,18 @@ void Alcohol ::mq3Cal()
   // We recomend executing this routine only on setup in laboratory conditions.
   // This routine does not need to be executed on each restart, you can load your R0 value from eeprom.
   // Acknowledgements: https://jayconsystems.com/blog/understanding-a-gas-sensor
-  Serial.print("MQ3 Calibrating please wait.");
+  Serial.print("MQ303 Calibrating please wait.");
 
   float calcR0 = 0;
   for (int i = 1; i <= 10; i++)
   {
-    MQ3.update(); // Update data, the arduino will read the voltage from the analog pin
-    calcR0 += MQ3.calibrate(RatioMQ3CleanAir);
+    MQ303.update(); // Update data, the arduino will read the voltage from the analog pin
+    calcR0 += MQ303.calibrate(RatioMQ3CleanAir);
     Serial.print(".");
   }
-  MQ3.setR0(calcR0 / 10);
+  MQ303.setR0(calcR0 / 10);
   Serial.println(calcR0 / 10);
-  Serial.println(" MQ3 done!.");
+  Serial.println(" MQ303 done!.");
   if (isinf(calcR0))
   {
     Serial.println("Warning: Conection issue, R0 is infinite (Open circuit detected) please check your wiring and supply");
@@ -97,37 +107,14 @@ double Alcohol ::mapd(double x, double in_min, double in_max, double out_min, do
   const double delta = x - in_min;
   return (delta * rise) / run + out_min;
 }
-double Alcohol ::readMQ3(bool debug)
+double Alcohol ::readMQ303(bool debug)
 {
-  MQ3.update();                         // Update data, the arduino will read the voltage from the analog pin
-  double alcoholPPM = MQ3.readSensor(); // Sensor will read PPM concentration using the model, a and b values set previously or from the setup
+  MQ303.update();                         // Update data, the arduino will read the voltage from the analog pin
+  double alcoholPPM = MQ303.readSensor(); // Sensor will read PPM concentration using the model, a and b values set previously or from the setup
   if (debug == true)
   {
-    MQ3.serialDebug(); // Will print the table on the serial port
+    MQ303.serialDebug(); // Will print the table on the serial port
   }
   return alcoholPPM;
 }
 
-/******************** TickTask *******************/
-bool TickTask::Update()
-{
-  unsigned long currentMillis = millis();
-  MillisCount = currentMillis - Millis_t;
-  if (MillisCount >= MillisDelay)
-  {
-    Millis_t = currentMillis;
-    return true;
-  }
-  else
-    return false;
-}
-
-unsigned long TickTask::getTick()
-{
-  return MillisCount;
-}
-
-TickTask::TickTask(unsigned long milDelay)
-{
-  MillisDelay = milDelay;
-}

@@ -1,10 +1,11 @@
 // MyBLELibrary.cpp
 
 #include <BLE_lib.h>
+#include <hardware_io.h>
 String data;
 bool deviceConnected =false;
 bool oldDeviceConnected = false;
-
+EspHardwareIo esp;
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
       deviceConnected = true;
@@ -68,6 +69,7 @@ bool MyBLEService::BleConnected(){
      bool State = false;
      if (deviceConnected) {
         State = true;
+      esp.BleLedOn();
 	}
 
     // disconnecting
@@ -75,11 +77,30 @@ bool MyBLEService::BleConnected(){
         pServer->startAdvertising(); // restart advertising
         oldDeviceConnected = deviceConnected;
         State = false;
+        esp.BleLedBlink();
     }
     // connecting
     if (deviceConnected && !oldDeviceConnected) {
         oldDeviceConnected = deviceConnected;
         State = true;
+        esp.BleLedOn();
     }
     return State;
+}
+void MyBLEService::ButtonDisconnected(){
+  if (digitalRead(SW_BLE) == LOW)
+    {
+        if (pressButtonBle == 0)
+        {
+            pressButtonBle = millis();
+        }
+        if (millis() - pressButtonBle >= TimePress * 1000)
+        {
+            pServer->disconnect(0);
+        }
+    }
+    else
+    {
+        pressButtonBle = 0;
+    }
 }

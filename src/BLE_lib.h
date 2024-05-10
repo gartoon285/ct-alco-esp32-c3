@@ -16,6 +16,9 @@
 #define TxRx_UUID "61ced631-7ddf-44f0-80f7-ecffe3a1656b"
 #define Tx_Characteristic_UUID "9d7dc8bc-04d5-4c20-8c01-4d4ca28bab51"
 #define Rx_Characteristic_UUID "4de68642-2eca-44e9-8f7e-06cdd936d0c3"
+
+#define TimeDelay 500
+#define TimePress 3
 class MyBLEService {
   public:
     void begin(String s);
@@ -23,6 +26,7 @@ class MyBLEService {
     void setState(std::string state);
     bool BleConnected();
     String getRx();
+    void ButtonDisconnected();
   private:
     BLEServer *pServer;
     BLEService *LogService;
@@ -31,6 +35,7 @@ class MyBLEService {
     BLEService *TxRxService;
     BLECharacteristic *TxCharacteristic;
     BLECharacteristic *RxCharacteristic;
+    unsigned long pressButtonBle = 0;
 };
 
 
