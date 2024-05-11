@@ -1,7 +1,4 @@
 #include <file_system.h>
-  EEPROMClass  Lastindex("eeprom1");
-  EEPROMClass  indexCheck1("eeprom2");
-  EEPROMClass  indexCheck2("eeprom3");
 void FileSystem::init()
 {
     if(!SPIFFS.begin(true)){
@@ -24,14 +21,15 @@ void FileSystem::init()
     hwid = String(baseMac[0], HEX) + " " + String(baseMac[1], HEX) + " " + String(baseMac[2], HEX) + " " + String(baseMac[3], HEX) + " " + String(baseMac[4], HEX) + " " + String(baseMac[5], HEX);
 }
 
-void FileSystem::Print(String time, float alco, float pressure, String ledcode)
+void FileSystem::Print(String time,String ledcode)
 {
     String s;
     byte index = EEPROM.readInt(0) + 1;
+    byte numLog = EEPROM.readInt(5)+1;
     doc["hwid"] = hwid;
     doc["time"] = time;
-    doc["alco"] = alco;
-    doc["pressure"] = pressure;
+    doc["alco"] = sensor.sgp30getEthanol();
+    doc["Co2"] = sensor.sgp30getCo2();
     doc["ledcode"] = ledcode;
     serializeJson(doc, s);
     String filename = "/"+String(index)+".txt";
@@ -46,8 +44,12 @@ void FileSystem::Print(String time, float alco, float pressure, String ledcode)
   if(index>=100){
     index =0;
   }
+  if(numLog>=100){
+    numLog=100;
+  }
   Serial.println(index);
   EEPROM.writeByte(0,index);
+  EEPROM.writeByte(5,numLog);
   EEPROM.commit();
 }
 std::array<String, 100> FileSystem::Read()

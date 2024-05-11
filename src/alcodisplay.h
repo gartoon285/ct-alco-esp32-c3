@@ -3,6 +3,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Alcohol.h>
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3c ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
@@ -10,6 +11,8 @@
 #define PIN        7 // On Trinket or Gemma, suggest changing this to 1
 #define OLED_RESET -1
 #define Time_WormUp 20
+
+
 const unsigned char FreeWill_Logo [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -61,8 +64,10 @@ const unsigned char FreeWill_Logo [] PROGMEM = {
         String randLED();
         void OLEDclear();
         void DisplayWormUp();
+		void sensorDisplay();
         private:
         byte rand1before;
         byte rand2before;
     };
+	extern Alcohol sensor;
 #endif

@@ -4,11 +4,11 @@
 #include <ArduinoJson.h>
 #include "FS.h"
 #include "SPIFFS.h"
-
+#include "alcodisplay.h"
  class FileSystem{
 public:
   void init();
-  void Print(String time, float alco, float pressure, String ledcode);
+  void Print(String time,String ledcode);
   std::array<String, 100> Read();
 private:
   StaticJsonDocument<192> doc;

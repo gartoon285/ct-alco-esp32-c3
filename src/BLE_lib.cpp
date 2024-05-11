@@ -49,12 +49,18 @@ void MyBLEService::begin(String s) {
   LogService->start();
   TxRxService->start();
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  fs.init();
   pAdvertising->start();
 }
 
-void MyBLEService::setLog(std::string log){
-    LogCharacteristic->setValue(log);
+void MyBLEService::setLog(){
+    std::array<String, 100> messages=fs.Read();
+    for(int i=0;i<100;i++){
+    if(!messages[i].isEmpty()){
+    LogCharacteristic->setValue(messages[i].c_str());
     LogCharacteristic->notify();
+    }
+    }
 }
 void MyBLEService::setState(std::string state){
     TxCharacteristic->setValue(state);
@@ -64,6 +70,33 @@ String MyBLEService:: getRx(){
   String s = data;
   data="";
   return s;
+}
+void MyBLEService ::command()
+{
+    String json = getRx();
+    if (!json.isEmpty())
+    {
+        StaticJsonDocument<192> doc;
+        DeserializationError error = deserializeJson(doc, json);
+        if (error)
+        {
+            Serial.print(F("deserializeJson() failed: "));
+            Serial.println(error.c_str());
+            return;
+        }
+        String timestamp = doc[String("timestamp")];
+        Serial.print("Timestamp: ");
+        Serial.println(timestamp);
+        String cmd = doc[String("cmd")];
+        Serial.print("Command: ");
+        Serial.println(cmd);
+        int force = doc["fw_update"]["force"];
+        Serial.print("Force Firmware Update: ");
+        Serial.println(force);
+        String fw_ver = doc["fw_update"][String("fw_ver")];
+        Serial.print("Firmware Version: ");
+        Serial.println(fw_ver);
+    }
 }
 bool MyBLEService::BleConnected(){
      bool State = false;

@@ -1,8 +1,7 @@
 #include <alcodisplay.h>
-
+Alcohol sensor;
 Adafruit_SSD1306 Dis(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-
 void Alcodisplay::init()
 {
     if (!Dis.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
@@ -18,7 +17,7 @@ void Alcodisplay::init()
     delay(2000);
 }
 
-void Alcodisplay::drawstyles(String co2,String Alcohol)
+void Alcodisplay::drawstyles(String co2,String Alco)
 {
     Dis.clearDisplay();
     Dis.setTextSize(1);              // Normal 1:1 pixel scale
@@ -30,7 +29,7 @@ void Alcodisplay::drawstyles(String co2,String Alcohol)
     Dis.setTextSize(1); // Normal 1:1 pixel scale
     Dis.print("Ethanol : ");
     Dis.setTextSize(1); // Normal 1:1 pixel scale
-    Dis.println(Alcohol);
+    Dis.println(Alco);
     Dis.display();
 }
 
@@ -83,5 +82,12 @@ void Alcodisplay::DisplayWormUp()
         Dis.println(text);
         Dis.display();
         delay(1000);
+    }
+}
+void Alcodisplay :: sensorDisplay()
+{
+    if (sensor.sgp30Update())
+    {
+        drawstyles(String(sensor.sgp30getCo2()), String(sensor.sgp30getEthanol()));
     }
 }
